@@ -96,6 +96,16 @@ chmod +x test.sh
 
 ---
 
+## Test Results
+
+<div align="center">
+
+<img src="./docs/images/test-result.png" alt="Test Script Results" width="80%" />
+
+</div>
+
+---
+
 <div align="center">
 
 **Built with ❤️ using .NET 9.0, NATS, and ASP.NET Core**

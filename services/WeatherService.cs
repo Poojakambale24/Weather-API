@@ -8,13 +8,13 @@ public class WeatherService
 {
     private readonly ILogger<WeatherService> _logger;
     private readonly HttpClient _httpClient;
-    private const string WttrBaseUrl = "https://wttr.in";
+    private const string WttrBaseUrl = "http://wttr.in";
 
     public WeatherService(ILogger<WeatherService> logger, IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
         _httpClient = httpClientFactory.CreateClient();
-        _httpClient.Timeout = TimeSpan.FromSeconds(10);
+        _httpClient.Timeout = TimeSpan.FromSeconds(30);
     }
 
     public async Task<WeatherResponse> GetWeatherAsync(WeatherRequest request)

@@ -1,5 +1,7 @@
 using CLOOPS.NATS.Attributes;
+using CLOOPS.NATS.Meta;
 using Microsoft.Extensions.Logging;
+using NATS.Client.Core;
 using weather.service.schema.Messages;
 using weather.service.schema.SubjectTypes;
 using weather.service.services;
@@ -17,15 +19,15 @@ public class WeatherController
         _logger = logger;
     }
 
-    [NatsConsumer(WeatherSubjects.WeatherRequest)]
-    public async Task<WeatherResponse> GetWeather(WeatherRequest request)
+    [NatsConsumer(_subject: WeatherSubjects.WeatherRequest)]
+    public async Task<NatsAck> GetWeather(NatsMsg<WeatherRequest> msg, CancellationToken ct = default)
     {
-        _logger.LogInformation("Received weather request for city: {City}", request.city);
+        _logger.LogInformation("Received weather request for city: {City}", msg.Data?.city);
         
-        var response = await _weatherService.GetWeatherAsync(request);
+        var response = await _weatherService.GetWeatherAsync(msg.Data ?? new WeatherRequest());
         
-        _logger.LogInformation("Returning weather response for city: {City}", request.city);
+        _logger.LogInformation("Returning weather response for city: {City}", msg.Data?.city);
         
-        return response;
+        return new NatsAck(_isAck: true, _reply: response);
     }
 }

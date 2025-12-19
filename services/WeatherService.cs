@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using weather.service.schema.Messages;
 
@@ -9,8 +10,20 @@ public class WeatherService
     private readonly ILogger<WeatherService> _logger;
     private readonly HttpClient _httpClient;
     private const string WttrBaseUrl = "http://wttr.in";
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(10);
+    
+    // Simple in-memory cache
+    private static readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
 
-    public WeatherService(ILogger<WeatherService> logger, IHttpClientFactory httpClientFactory)
+    private class CacheEntry
+    {
+        public string Data { get; set; } = string.Empty;
+        public DateTime ExpiresAt { get; set; }
+    }
+
+    public WeatherService(
+        ILogger<WeatherService> logger, 
+        IHttpClientFactory httpClientFactory)
     {
         _logger = logger;
         _httpClient = httpClientFactory.CreateClient();
@@ -30,10 +43,21 @@ public class WeatherService
                 };
             }
 
+            // Check cache first
+            var cacheKey = $"weather_{request.city.ToLowerInvariant()}";
+            if (_cache.TryGetValue(cacheKey, out var entry) && entry.ExpiresAt > DateTime.UtcNow)
+            {
+                _logger.LogInformation("Returning cached weather for city: {City}", request.city);
+                return new WeatherResponse { weather = entry.Data };
+            }
+
+            // Clean up expired entries periodically
+            CleanExpiredCache();
+
             var encodedCity = Uri.EscapeDataString(request.city);
             var url = $"{WttrBaseUrl}/{encodedCity}?format=j2";
 
-            _logger.LogInformation("Fetching weather for city: {City}", request.city);
+            _logger.LogInformation("Fetching weather from API for city: {City}", request.city);
 
             var response = await _httpClient.GetAsync(url);
 
@@ -114,6 +138,13 @@ public class WeatherService
                 WriteIndented = true 
             });
 
+            // Cache the result
+            _cache[cacheKey] = new CacheEntry 
+            { 
+                Data = weatherJson, 
+                ExpiresAt = DateTime.UtcNow.Add(CacheDuration) 
+            };
+
             _logger.LogInformation("Successfully fetched weather for city: {City}", request.city);
 
             return new WeatherResponse { weather = weatherJson };
@@ -149,6 +180,19 @@ public class WeatherService
             { 
                 weather = JsonSerializer.Serialize(new { error = "Internal server error" }) 
             };
+        }
+    }
+
+    private static void CleanExpiredCache()
+    {
+        var now = DateTime.UtcNow;
+        var expiredKeys = _cache.Where(kvp => kvp.Value.ExpiresAt <= now)
+                                .Select(kvp => kvp.Key)
+                                .ToList();
+        
+        foreach (var key in expiredKeys)
+        {
+            _cache.TryRemove(key, out _);
         }
     }
 }

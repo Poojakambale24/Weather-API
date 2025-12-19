@@ -1,16 +1,30 @@
 # Weather API Microservice
 
-A NATS-based microservice that provides weather information for cities using the wttr.in public API.
+A modern NATS-based microservice with an interactive web dashboard that provides weather information for cities worldwide using the wttr.in public API.
 
-## Overview
+## 🎯 Overview
 
-This microservice is built using the `cloops.microservices` SDK and communicates via NATS messaging rather than traditional REST endpoints. It listens on the `weather.request` subject and returns weather data in JSON format.
+This microservice is built using the `cloops.microservices` SDK and offers two interfaces:
+1. **NATS Messaging**: For inter-service communication on the `weather.request` subject
+2. **Web Dashboard**: Interactive UI at http://localhost:5001 for user-friendly weather queries
+
+### ✨ Key Features
+
+- 🚀 **High Performance**: Built on .NET 9.0 with async/await patterns
+- 💾 **Smart Caching**: 10-minute in-memory cache to reduce API calls and improve response times
+- 🌐 **Dual Interface**: Both NATS messaging and web dashboard
+- 🎨 **Beautiful UI**: Custom-designed interface with background imagery
+- 📡 **NATS Integration**: Request-reply pattern for microservice communication
+- ⚡ **Fast Response**: Cached results return instantly
+- 🛡️ **Error Handling**: Comprehensive error handling for network issues and invalid inputs
 
 ## Architecture
 
 - **Framework**: .NET 9.0 with cloops.microservices SDK
 - **Messaging**: NATS for inter-service communication
+- **Web Framework**: ASP.NET Core MVC with Razor views
 - **Weather Data Source**: wttr.in public API (no API key required)
+- **Caching**: In-memory concurrent dictionary with automatic expiration
 - **Pattern**: Request-Reply messaging pattern
 
 ## Prerequisites
@@ -56,11 +70,30 @@ export ENABLE_NATS_CONSUMERS="True"
 dotnet run
 ```
 
-The service will start and subscribe to the `weather.request` subject.
+The service will start and:
+- Subscribe to the `weather.request` NATS subject
+- Start the web dashboard at http://localhost:5001
+- Display startup information with both endpoints
 
 ## Usage
 
-### Request Format
+### Option 1: Web Dashboard
+
+1. Open your browser to http://localhost:5001
+2. Enter a city name in the search box
+3. Click "Get Weather" to see results
+4. Enjoy the beautiful interface with real-time weather data!
+
+Features:
+- Instant results for cached cities
+- Beautiful background imagery
+- Mobile-responsive design
+- Real-time error handling
+- Temperature in both Celsius and Fahrenheit
+
+### Option 2: NATS Messaging
+
+#### Request Format
 
 Send a NATS request to the `weather.request` subject with the following JSON payload:
 
@@ -69,6 +102,20 @@ Send a NATS request to the `weather.request` subject with the following JSON pay
   "city": "Santa Clara"
 }
 ```
+
+#### Example Using NATS CLI
+
+```bash
+nats request weather.request '{"city": "San Francisco"}'
+```
+
+#### Using the Test Script
+
+```bash
+./test.sh
+```
+
+This will run automated tests with various cities and display results.
 
 ### Response Format
 

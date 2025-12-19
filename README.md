@@ -1,6 +1,6 @@
 <div align="center">
 
-![Weather Service Banner](./docs/images/banner.png)
+<img src="./docs/images/banner.png" alt="Weather Service Banner" width="100%" />
 
 </div>
 
@@ -78,13 +78,21 @@ chmod +x test.sh
 
 ## Interface
 
-![Web Dashboard](./docs/images/interface.png)
+<div align="center">
+
+<img src="./docs/images/interface.png" alt="Web Dashboard Interface" width="80%" />
+
+</div>
 
 ---
 
 ## Output
 
-![Weather Output](./docs/images/output.png)
+<div align="center">
+
+<img src="./docs/images/output.png" alt="Weather Output Example" width="80%" />
+
+</div>
 
 ---
 

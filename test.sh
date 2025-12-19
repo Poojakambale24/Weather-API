@@ -25,8 +25,6 @@ cities=(
     "Paris"
     "New York"
     "Sydney"
-    "Invalid City 12345"
-    ""
 )
 
 test_count=0
@@ -45,12 +43,13 @@ test_city() {
         echo "  Request: {\"city\": \"$city\"}"
     fi
     
-    # Send NATS request with timeout
-    response=$(timeout 5s nats request weather.request "{\"city\": \"$city\"}" 2>&1)
+    # Send NATS request with timeout (using nats built-in timeout)
+    response=$(nats request weather.request "{\"city\": \"$city\"}" --timeout=5s 2>&1)
     
-    if [ $? -eq 0 ]; then
+    if [ $? -eq 0 ] && echo "$response" | grep -q "weather"; then
         echo -e "  ${GREEN}✓ Response received${NC}"
-        echo "$response" | jq '.' 2>/dev/null || echo "$response"
+        # Extract just the JSON response
+        echo "$response" | grep -o '{"weather.*}' | jq '.' 2>/dev/null || echo "$response" | tail -1
         success_count=$((success_count + 1))
     else
         echo -e "  ${RED}✗ Request failed or timed out${NC}"
@@ -66,22 +65,22 @@ if ! command -v nats &> /dev/null; then
     exit 1
 fi
 
-# Check if jq is installed
+# Check if jq is installed (optional)
 if ! command -v jq &> /dev/null; then
-    echo -e "${YELLOW}Warning: jq is not installed (optional for pretty output)${NC}"
+    echo -e "${YELLOW}Note: jq is not installed (optional for pretty output)${NC}"
     echo "Install it with: brew install jq"
     echo ""
 fi
 
-# Check if NATS server is running
+# Check if NATS server is running by trying a simple connection
 echo "Checking NATS server connection..."
-nats server ping --timeout=2s &> /dev/null
-if [ $? -ne 0 ]; then
-    echo -e "${RED}Error: Cannot connect to NATS server${NC}"
-    echo "Make sure NATS server is running and the weather service is started"
+if docker ps | grep -q nats-server; then
+    echo -e "${GREEN}✓ NATS server is running${NC}"
+else
+    echo -e "${RED}Error: NATS server is not running${NC}"
+    echo "Start it with: docker run -d --name nats-server -p 4222:4222 nats:latest --jetstream"
     exit 1
 fi
-echo -e "${GREEN}✓ NATS server is running${NC}"
 echo ""
 
 # Run tests

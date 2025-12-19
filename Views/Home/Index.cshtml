@@ -17,7 +17,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: sans-serif;
             background-image: url('/images/background.png');
             background-size: cover;
             background-position: center;
@@ -31,21 +31,22 @@
             max-width: 800px;
             margin: 0 auto;
             padding: 40px 20px;
+            text-align: center;
         }
 
         h1 {
             color: #000;
-            font-size: 3em;
+            font-size: 2em;
+            font-weight: normal;
             text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 10px;
         }
 
         .subtitle {
             color: #000;
-            font-size: 1.2em;
-            text-align: center;
-            margin-bottom: 40px;
+            font-size: 1em;
+            font-weight: normal;
+            margin-bottom: 60px;
             text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
         }
 
@@ -53,19 +54,24 @@
             background: none;
             padding: 30px 0;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .search-form.hidden {
+            display: none;
         }
 
         input[type="text"] {
-            flex: 1;
-            padding: 15px 20px;
-            font-size: 1.1em;
+            width: 300px;
+            padding: 12px 20px;
+            font-size: 0.95em;
+            font-family: sans-serif;
+            font-weight: normal;
             border: 2px solid #000;
+            border-radius: 25px;
             background: rgba(255, 255, 255, 0.9);
             color: #000;
             outline: none;
@@ -79,13 +85,16 @@
 
         input[type="text"]::placeholder {
             color: #666;
+            font-weight: normal;
         }
 
         button {
-            padding: 15px 40px;
-            font-size: 1.1em;
-            font-weight: bold;
+            padding: 12px 30px;
+            font-size: 0.95em;
+            font-family: sans-serif;
+            font-weight: normal;
             border: 2px solid #000;
+            border-radius: 25px;
             background: rgba(255, 255, 255, 0.9);
             color: #000;
             cursor: pointer;
@@ -95,26 +104,35 @@
         button:hover {
             background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            transform: translateY(-2px);
+        }
+
+        .close-btn {
+            margin-bottom: 20px;
         }
 
         .error {
             color: #dc3545;
-            font-size: 1.1em;
+            font-size: 1em;
+            font-weight: normal;
             text-align: center;
             padding: 15px;
             margin-bottom: 20px;
             background: rgba(255, 255, 255, 0.9);
             border: 2px solid #dc3545;
-            font-weight: bold;
+            border-radius: 10px;
         }
 
         .result-section {
             margin-top: 30px;
         }
 
+        .result-section.hidden {
+            display: none;
+        }
+
         .city-title {
-            font-size: 2em;
+            font-size: 1.5em;
+            font-weight: normal;
             color: #000;
             text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.3);
             margin-bottom: 20px;
@@ -124,12 +142,16 @@
             background: none;
             padding: 0;
             line-height: 1.8;
+            text-align: left;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
         .weather-data pre {
             color: #000;
-            font-size: 1em;
-            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            font-weight: normal;
             white-space: pre-wrap;
             word-wrap: break-word;
             text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
@@ -138,50 +160,21 @@
             margin: 0;
             border: none;
         }
-
-        .feature-list {
-            margin-top: 40px;
-            color: #000;
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
-        }
-
-        .feature-list h3 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-
-        .feature-list ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .feature-list li {
-            padding: 8px 0;
-            font-size: 1.1em;
-        }
-
-        .feature-list li:before {
-            content: "✓ ";
-            font-weight: bold;
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌤️ Weather Service Dashboard</h1>
+        <h1>Weather Service Dashboard</h1>
         <p class="subtitle">Get real-time weather information for any city worldwide</p>
 
-        <div class="search-form">
-            <form method="post" action="/Home/GetWeather">
-                <div class="input-group">
-                    <input type="text" 
-                           name="city" 
-                           placeholder="Enter city name (e.g., San Francisco, Tokyo, London)" 
-                           required 
-                           autofocus>
-                    <button type="submit">Get Weather</button>
-                </div>
+        <div class="search-form @(ViewBag.WeatherData != null ? "hidden" : "")" id="searchForm">
+            <form method="post" action="/Home/GetWeather" style="display: flex; gap: 10px;">
+                <input type="text" 
+                       name="city" 
+                       placeholder="Enter City Name" 
+                       required 
+                       autofocus>
+                <button type="submit">Enter</button>
             </form>
         </div>
 
@@ -190,30 +183,17 @@
             <div class="error">
                 @ViewBag.Error
             </div>
+            <button class="close-btn" onclick="window.location.href='/'">Try Again</button>
         }
 
         @if (ViewBag.WeatherData != null)
         {
-            <div class="result-section">
+            <div class="result-section" id="resultSection">
+                <button class="close-btn" onclick="window.location.href='/'">✕</button>
                 <h2 class="city-title">Weather in @ViewBag.City</h2>
                 <div class="weather-data">
                     <pre>@ViewBag.WeatherData</pre>
                 </div>
-            </div>
-        }
-
-        @if (ViewBag.WeatherData == null && ViewBag.Error == null)
-        {
-            <div class="feature-list">
-                <h3>Features:</h3>
-                <ul>
-                    <li>Real-time weather data from wttr.in API</li>
-                    <li>10-minute caching for improved performance</li>
-                    <li>NATS messaging support on weather.request subject</li>
-                    <li>Temperature in Celsius and Fahrenheit</li>
-                    <li>Wind speed, humidity, and UV index</li>
-                    <li>Current conditions and forecast</li>
-                </ul>
             </div>
         }
     </div>
